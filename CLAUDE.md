@@ -42,7 +42,17 @@ clobber `ios/`.
    legacy UIApplication lifecycle. This adopts React Native's existing
    `UIWindow` into the scene. Paired with `UIApplicationSceneManifest` in
    `ios/FAFH/Info.plist`. Removing either brings back an `EXC_BREAKPOINT`
-   crash at launch.
+   crash at launch. It also registers the `expo-splash-screen` splash for
+   the root view controller: Expo's own registration reads
+   `[application keyWindow]` in `didFinishLaunching`, which is nil before
+   the scene connects, so without this there is no splash and LogBox shows
+   "No native splash screen registered" warnings.
+
+   Building from the Xcode GUI fails at "Bundle React Native code and
+   images" with `node: command not found` — that phase has no fnm Node on
+   `PATH`. Build from a shell with
+   `fnm exec --using=16 -- xcodebuild -workspace ios/FAFH.xcworkspace -scheme FAFH ...`
+   or `expo run:ios`.
 
 2. **`ios/Podfile` `post_install` hook** does three things:
    - sets `IPHONEOS_DEPLOYMENT_TARGET` to 15.1 (Xcode 27 rejects the pods'

@@ -1,5 +1,8 @@
 #import "SceneDelegate.h"
 
+#import <ExpoModulesCore/EXModuleRegistryProvider.h>
+#import <EXSplashScreen/EXSplashScreenService.h>
+
 @implementation SceneDelegate
 
 - (void)scene:(UIScene *)scene
@@ -19,6 +22,17 @@
     existingWindow.windowScene = windowScene;
     self.window = existingWindow;
     [existingWindow makeKeyAndVisible];
+
+    // expo-splash-screen registers its splash in didFinishLaunching via
+    // [application keyWindow], which is nil until this scene connects, so
+    // the splash was never shown and every later splash call warned.
+    // Register it here, now that the window is key.
+    EXSplashScreenService *splashScreenService = (EXSplashScreenService *)
+        [EXModuleRegistryProvider getSingletonModuleForClass:[EXSplashScreenService class]];
+    UIViewController *rootViewController = existingWindow.rootViewController;
+    if (splashScreenService != nil && rootViewController != nil) {
+      [splashScreenService showSplashScreenFor:rootViewController];
+    }
     return;
   }
 
