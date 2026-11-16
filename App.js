@@ -10,7 +10,7 @@ import * as SecureStore from "expo-secure-store";
 import "./firebase/firebaseConfig";
 
 import AuthContext from "./hooks/context";
-import { reducer, signIn, signOut } from "./services/auth";
+import { reducer, signIn, signOut, signUp, googleSignIn } from "./services/auth";
 import { NativeBaseProvider } from "native-base";
 import FAFHTHEME from "./assets/theme/extTheme";
 import AuthStack from "./routes/AuthStack";

@@ -92,19 +92,18 @@ export const signOut = async () => {
 };
 
 export const googleSignIn = async () => {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  provider.addScope('profile');
-    provider.addScope('https://www.googleapis.com/auth/drive');
-  try {
-    await firebase.auth().signInWithRedirect(provider);
-    firebase.auth().getRedirectResult().then(function(authData) {
-        console.log(authData);
-    }).catch(function(error) {
-        console.log(error);
-    });
-  } catch (e) {
-    console.log(e);
-  }
+  // Not implemented on native, and deliberately so rather than left to throw.
+  //
+  // This used firebase v8's signInWithRedirect, which is browser-only. On React
+  // Native it rejects with "location.protocol must be http, https or
+  // chrome-extension and web storage must be enabled", which surfaced as an
+  // unhandled promise rejection when the Google button was tapped.
+  //
+  // Doing this properly needs expo-auth-session with a Google OAuth client ID
+  // per platform, not the web SDK's redirect flow. Until then, return the same
+  // error shape the other handlers use so the UI can show it.
+  console.warn("Google sign-in is not implemented on native; use email and password.");
+  return "Error: Google sign-in is not available yet \u2014 please use email and password.";
 };
 
 //standalone functions
