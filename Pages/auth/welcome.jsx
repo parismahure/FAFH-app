@@ -1,48 +1,17 @@
-import * as SplashScreen from "expo-splash-screen";
 import { View, Text, StyleSheet, Pressable, SafeAreaView } from "react-native";
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import useFonts from "../../hooks/useFonts";
+import React from "react";
 import { useTheme } from "native-base";
 
 function Welcome({ navigation }) {
   const { colors } = useTheme();
   console.log(colors.primary["600"]);
-  //loading fonts
-  // const [appIsReady, setAppIsReady] = useState(false);
-  const appIsReady = useRef(false);
+  // No splash screen handling here: the native splash auto-hides on the
+  // first React frame, before this screen mounts, so calling
+  // SplashScreen.preventAutoHideAsync/hideAsync from here always rejects.
 
-  useEffect(() => {
-    //splash screen
-    async function prepare() {
-      try {
-        await SplashScreen.preventAutoHideAsync();
-        await useFonts();
-        console.log("fonts loaded");
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        // setAppIsReady(true);
-        appIsReady.current = true;
-        SplashScreen.hideAsync();
-      }
-    }
-    prepare();
-
-    //...more code
-  }, []);
-  const onLayoutRootView = useCallback(async () => {
-    if (appIsReady.current) {
-      await SplashScreen.hideAsync();
-    }
-  }, [appIsReady]);
-
-  if (!appIsReady) {
-    return null;
-  }
   return (
     // <SafeAreaView>
     <SafeAreaView
-      onLayout={onLayoutRootView}
       style={{
         flex: 1,
         alignItems: "center",
