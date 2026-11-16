@@ -1,0 +1,82 @@
+# What this checks, and what it deliberately does not.
+#
+# This repo has no test suite and no ESLint config, so this workflow gates on
+# the one thing that can be verified honestly and cheaply: the JavaScript tree
+# bundles for iOS in release mode. That is not a formality — a bad
+# metro.config.js silently broke platform resolution here once, and the only
+# symptom was react-native's own index.js failing to resolve DatePickerIOS.
+#
+# It does NOT build the native iOS app. See the note at the bottom.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bundle:
+    name: Bundle the JS for iOS
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 16 is not a preference: expo-cli@5, which this SDK 45 project
+      # depends on, refuses to run on anything newer. See CLAUDE.md.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 16
+          cache: yarn
+
+      # --frozen-lockfile fails if package.json and yarn.lock disagree rather
+      # than resolving to a tree nobody has tested.
+      #
+      # The postinstall script runs patch-package, which applies
+      # patches/react-native+0.68.2.patch. Under CI, patch-package exits
+      # non-zero if a patch no longer applies, so a stale patch fails here
+      # instead of at pod install time on someone's laptop.
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+      # --platform ios is required, not incidental. react-native's index.js
+      # imports DatePickerIOS, which only exists as DatePickerIOS.ios.js, so a
+      # platform-less bundle cannot resolve it.
+      - name: Bundle
+        run: |
+          yarn react-native bundle \
+            --platform ios \
+            --dev false \
+            --entry-file node_modules/expo/AppEntry.js \
+            --bundle-output "$RUNNER_TEMP/main.jsbundle" \
+            --assets-dest "$RUNNER_TEMP/assets"
+
+      - name: Report bundle size
+        run: |
+          size=$(stat -c %s "$RUNNER_TEMP/main.jsbundle")
+          echo "### iOS bundle: $(numfmt --to=iec "$size")" >> "$GITHUB_STEP_SUMMARY"
+          # A bundle this far below the known-good 5 MB means something failed
+          # to be included rather than succeeded at being small.
+          if [ "$size" -lt 1000000 ]; then
+            echo "::error::bundle is implausibly small ($size bytes)"
+            exit 1
+          fi
+
+# Why there is no native iOS build job
+# -----------------------------------
+# It would need a macos runner, roughly 40 minutes per run, and would still not
+# reproduce this machine: ios/ is hand-patched for Xcode 27 and its pods only
+# install under CocoaPods on system Ruby 2.6, because RN 0.68's pod scripts
+# break on Ruby 4. Encoding that into CI would mean maintaining a second
+# fragile toolchain to protect a stack we intend to upgrade off.
+#
+# Until the Expo SDK upgrade lands, native build breakage is caught by building
+# locally. The bundle job above catches the JS regressions, which is where
+# changes actually happen.
