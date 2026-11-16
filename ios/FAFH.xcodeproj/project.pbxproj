@@ -222,7 +222,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export NODE_BINARY=node\n\n# The project root by default is one level up from the ios directory\nexport PROJECT_ROOT=\"$PROJECT_DIR\"/..\n\n`node --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'\"`\n";
+			shellScript = "set -e\n\n# Xcode does not load your shell profile, so a Node installed by a version\n# manager is not on PATH. Resolve one via .xcode.env (committed) and\n# .xcode.env.local (machine-specific, gitignored).\nif [[ -f \"$PROJECT_DIR/.xcode.env\" ]]; then source \"$PROJECT_DIR/.xcode.env\"; fi\nif [[ -f \"$PROJECT_DIR/.xcode.env.local\" ]]; then source \"$PROJECT_DIR/.xcode.env.local\"; fi\n\nif [[ -z \"$NODE_BINARY\" || ! -x \"$NODE_BINARY\" ]]; then\n  echo \"error: Node not found. Xcode has no node on its PATH.\" >&2\n  echo \"error: Set it in ios/.xcode.env.local, e.g.\" >&2\n  echo \"error:   export NODE_BINARY=$(command -v node 2>/dev/null || echo /path/to/node)\" >&2\n  exit 1\nfi\n\nexport NODE_BINARY\nexport PROJECT_ROOT=\"$PROJECT_DIR\"/..\n\n`\"$NODE_BINARY\" --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'\"`\n";
 		};
 		08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -316,7 +316,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "export RCT_METRO_PORT=\"${RCT_METRO_PORT:=8081}\"\necho \"export RCT_METRO_PORT=${RCT_METRO_PORT}\" > `node --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/.packager.env'\"`\nif [ -z \"${RCT_NO_LAUNCH_PACKAGER+xxx}\" ] ; then\n  if nc -w 5 -z localhost ${RCT_METRO_PORT} ; then\n    if ! curl -s \"http://localhost:${RCT_METRO_PORT}/status\" | grep -q \"packager-status:running\" ; then\n      echo \"Port ${RCT_METRO_PORT} already in use, packager is either not running or not running correctly\"\n      exit 2\n    fi\n  else\n    open `node --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/launchPackager.command'\"` || echo \"Can't start packager automatically\"\n  fi\nfi\n";
+			shellScript = "if [[ -f \"$PROJECT_DIR/.xcode.env\" ]]; then source \"$PROJECT_DIR/.xcode.env\"; fi\nif [[ -f \"$PROJECT_DIR/.xcode.env.local\" ]]; then source \"$PROJECT_DIR/.xcode.env.local\"; fi\nexport NODE_BINARY=\"${NODE_BINARY:-node}\"\nexport RCT_METRO_PORT=\"${RCT_METRO_PORT:=8081}\"\necho \"export RCT_METRO_PORT=${RCT_METRO_PORT}\" > `\"$NODE_BINARY\" --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/.packager.env'\"`\nif [ -z \"${RCT_NO_LAUNCH_PACKAGER+xxx}\" ] ; then\n  if nc -w 5 -z localhost ${RCT_METRO_PORT} ; then\n    if ! curl -s \"http://localhost:${RCT_METRO_PORT}/status\" | grep -q \"packager-status:running\" ; then\n      echo \"Port ${RCT_METRO_PORT} already in use, packager is either not running or not running correctly\"\n      exit 2\n    fi\n  else\n    open `\"$NODE_BINARY\" --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/launchPackager.command'\"` || echo \"Can't start packager automatically\"\n  fi\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

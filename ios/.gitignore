@@ -27,3 +27,6 @@ project.xcworkspace
 
 # CocoaPods
 /Pods/
+
+# Machine-specific Node path for the build phase
+.xcode.env.local
