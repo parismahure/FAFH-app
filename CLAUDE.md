@@ -63,9 +63,13 @@ clobber `ios/`.
 
 ## Known non-issues
 
-- `No native splash screen registered` warning
 - `OSStatus error -34018` — `expo-secure-store` keychain, simulator only
-- Yellow "Possible Unhandled Promise Rejection" box
+
+A "No native splash screen registered" error or a yellow "Possible
+Unhandled Promise Rejection" box is **not** a non-issue. Both came from
+calling `expo-splash-screen` from the Welcome screen, which mounts after the
+native splash has already auto-hidden. That was removed; if either comes
+back, look for a new `SplashScreen.*` call made after the first frame.
 
 ## Known real issue — out of scope unless asked
 
